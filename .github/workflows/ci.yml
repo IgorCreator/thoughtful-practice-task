@@ -26,11 +26,11 @@ jobs:
       - name: Run tests
         run: mvn test
 
-       - name: Verify build
-         run: mvn verify
+      - name: Verify build
+        run: mvn verify
 
-       - name: Run demo
-         run: mvn exec:java -Dexec.mainClass="com.thoughtful.sorting.PackageSorter"
+      - name: Run demo
+        run: mvn exec:java -Dexec.mainClass="com.thoughtful.sorting.PackageSorter"
 
       - name: Display test results
         if: always()
