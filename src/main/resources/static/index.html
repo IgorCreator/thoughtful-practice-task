@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Package Sorting System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .result-badge {
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .input-error {
+        border-color: #ef4444;
+        background-color: #fef2f2;
+      }
+    </style>
+  </head>
+  <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-gray-800 mb-2">
+          📦 Package Sorting System
+        </h1>
+        <p class="text-gray-600">
+          Enter package dimensions and mass to determine the correct sorting
+          category
+        </p>
+      </div>
+
+      <!-- Main Card -->
+      <div class="bg-white rounded-2xl shadow-xl p-8 mb-6">
+        <!-- Form -->
+        <form id="packageForm" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Width -->
+            <div>
+              <label
+                for="width"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Width (cm) <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                id="width"
+                name="width"
+                step="0.01"
+                min="0.01"
+                placeholder="e.g., 50"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                required
+              />
+              <p class="mt-1 text-sm text-red-600 hidden" id="width-error"></p>
+            </div>
+
+            <!-- Height -->
+            <div>
+              <label
+                for="height"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Height (cm) <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                id="height"
+                name="height"
+                step="0.01"
+                min="0.01"
+                placeholder="e.g., 50"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                required
+              />
+              <p class="mt-1 text-sm text-red-600 hidden" id="height-error"></p>
+            </div>
+
+            <!-- Length -->
+            <div>
+              <label
+                for="length"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Length (cm) <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                id="length"
+                name="length"
+                step="0.01"
+                min="0.01"
+                placeholder="e.g., 50"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                required
+              />
+              <p class="mt-1 text-sm text-red-600 hidden" id="length-error"></p>
+            </div>
+
+            <!-- Mass -->
+            <div>
+              <label
+                for="mass"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Mass (kg) <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                id="mass"
+                name="mass"
+                step="0.01"
+                min="0.01"
+                placeholder="e.g., 10"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                required
+              />
+              <p class="mt-1 text-sm text-red-600 hidden" id="mass-error"></p>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="flex gap-4">
+            <button
+              type="submit"
+              class="flex-1 bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Sort Package
+            </button>
+            <button
+              type="button"
+              id="resetBtn"
+              class="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-all"
+            >
+              Reset
+            </button>
+          </div>
+        </form>
+
+        <!-- Loading Spinner -->
+        <div id="loading" class="hidden text-center py-4">
+          <div
+            class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+          ></div>
+          <p class="text-gray-600 mt-2">Analyzing package...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div
+          id="errorMessage"
+          class="hidden mt-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg"
+        >
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg
+                class="h-5 w-5 text-red-500"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-semibold text-red-800">Error</h3>
+              <div id="errorText" class="text-sm text-red-700 mt-1"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Result Display -->
+        <div id="result" class="hidden mt-6">
+          <div class="border-t pt-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Sorting Result</h2>
+            <div id="resultContent"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white rounded-lg shadow p-4">
+          <div class="flex items-center mb-2">
+            <span class="text-2xl mr-2">✅</span>
+            <h3 class="font-bold text-gray-800">STANDARD</h3>
+          </div>
+          <p class="text-sm text-gray-600">Neither bulky nor heavy</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+          <div class="flex items-center mb-2">
+            <span class="text-2xl mr-2">⚠️</span>
+            <h3 class="font-bold text-gray-800">SPECIAL</h3>
+          </div>
+          <p class="text-sm text-gray-600">Bulky OR heavy (not both)</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+          <div class="flex items-center mb-2">
+            <span class="text-2xl mr-2">❌</span>
+            <h3 class="font-bold text-gray-800">REJECTED</h3>
+          </div>
+          <p class="text-sm text-gray-600">Both bulky AND heavy</p>
+        </div>
+      </div>
+
+      <!-- Rules Section -->
+      <div class="bg-white rounded-lg shadow p-6 mt-4">
+        <h3 class="text-lg font-bold text-gray-800 mb-3">📋 Sorting Rules</h3>
+        <ul class="space-y-2 text-sm text-gray-600">
+          <li class="flex items-start">
+            <span class="text-blue-600 mr-2">•</span>
+            <span
+              ><strong>Bulky:</strong> Volume ≥ 1,000,000 cm³ OR any dimension ≥
+              150 cm</span
+            >
+          </li>
+          <li class="flex items-start">
+            <span class="text-blue-600 mr-2">•</span>
+            <span><strong>Heavy:</strong> Mass ≥ 20 kg</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById("packageForm");
+      const loading = document.getElementById("loading");
+      const errorMessage = document.getElementById("errorMessage");
+      const errorText = document.getElementById("errorText");
+      const result = document.getElementById("result");
+      const resultContent = document.getElementById("resultContent");
+      const resetBtn = document.getElementById("resetBtn");
+
+      // Input fields
+      const inputs = ["width", "height", "length", "mass"];
+
+      // Client-side validation
+      function validateInput(field, value) {
+        const errorEl = document.getElementById(`${field}-error`);
+        const inputEl = document.getElementById(field);
+
+        if (!value || value === "") {
+          showError(field, `${capitalize(field)} is required`);
+          return false;
+        }
+
+        const numValue = parseFloat(value);
+        if (isNaN(numValue)) {
+          showError(field, `${capitalize(field)} must be a valid number`);
+          return false;
+        }
+
+        if (numValue <= 0) {
+          showError(field, `${capitalize(field)} must be positive`);
+          return false;
+        }
+
+        hideError(field);
+        return true;
+      }
+
+      function showError(field, message) {
+        const errorEl = document.getElementById(`${field}-error`);
+        const inputEl = document.getElementById(field);
+        errorEl.textContent = message;
+        errorEl.classList.remove("hidden");
+        inputEl.classList.add("input-error");
+      }
+
+      function hideError(field) {
+        const errorEl = document.getElementById(`${field}-error`);
+        const inputEl = document.getElementById(field);
+        errorEl.classList.add("hidden");
+        inputEl.classList.remove("input-error");
+      }
+
+      function capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+      }
+
+      // Real-time validation
+      inputs.forEach((field) => {
+        const input = document.getElementById(field);
+        input.addEventListener("blur", () => {
+          if (input.value) {
+            validateInput(field, input.value);
+          }
+        });
+        input.addEventListener("input", () => {
+          if (input.value) {
+            hideError(field);
+          }
+        });
+      });
+
+      // Form submission
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // Validate all fields
+        let isValid = true;
+        const data = {};
+
+        inputs.forEach((field) => {
+          const value = document.getElementById(field).value;
+          if (!validateInput(field, value)) {
+            isValid = false;
+          } else {
+            data[field] = parseFloat(value);
+          }
+        });
+
+        if (!isValid) {
+          return;
+        }
+
+        // Hide previous results
+        errorMessage.classList.add("hidden");
+        result.classList.add("hidden");
+        form.classList.add("hidden");
+        loading.classList.remove("hidden");
+
+        try {
+          const response = await fetch("/api/sort", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          const responseData = await response.json();
+
+          if (response.ok) {
+            displayResult(responseData, data);
+          } else {
+            displayError(responseData);
+          }
+        } catch (error) {
+          displayError({
+            messages: [
+              "Network error. Please check your connection and try again.",
+            ],
+          });
+        } finally {
+          loading.classList.add("hidden");
+          form.classList.remove("hidden");
+        }
+      });
+
+      function displayResult(data, inputData) {
+        const category = data.category;
+        const volume = inputData.width * inputData.height * inputData.length;
+
+        let badgeColor, icon, description;
+
+        if (category === "STANDARD") {
+          badgeColor = "bg-green-100 text-green-800 border-green-300";
+          icon = "✅";
+          description =
+            "This package meets standard requirements and can be processed normally.";
+        } else if (category === "SPECIAL") {
+          badgeColor = "bg-yellow-100 text-yellow-800 border-yellow-300";
+          icon = "⚠️";
+          description =
+            "This package requires special handling due to its size or weight.";
+        } else {
+          badgeColor = "bg-red-100 text-red-800 border-red-300";
+          icon = "❌";
+          description =
+            "This package cannot be processed as it is both bulky and heavy.";
+        }
+
+        resultContent.innerHTML = `
+                <div class="result-badge border-2 ${badgeColor} rounded-lg p-6 mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-3xl">${icon}</span>
+                        <span class="text-2xl font-bold">${category}</span>
+                    </div>
+                    <p class="text-sm mt-2">${description}</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="bg-gray-50 rounded p-3">
+                        <p class="text-gray-600 font-medium">Dimensions</p>
+                        <p class="text-gray-800 font-semibold">${
+                          inputData.width
+                        } × ${inputData.height} × ${inputData.length} cm</p>
+                    </div>
+                    <div class="bg-gray-50 rounded p-3">
+                        <p class="text-gray-600 font-medium">Volume</p>
+                        <p class="text-gray-800 font-semibold">${volume.toLocaleString()} cm³</p>
+                    </div>
+                    <div class="bg-gray-50 rounded p-3">
+                        <p class="text-gray-600 font-medium">Mass</p>
+                        <p class="text-gray-800 font-semibold">${
+                          inputData.mass
+                        } kg</p>
+                    </div>
+                    <div class="bg-gray-50 rounded p-3">
+                        <p class="text-gray-600 font-medium">Status</p>
+                        <p class="text-gray-800 font-semibold">${
+                          volume >= 1000000 ||
+                          Math.max(
+                            inputData.width,
+                            inputData.height,
+                            inputData.length
+                          ) >= 150
+                            ? "Bulky"
+                            : "Not Bulky"
+                        } / ${inputData.mass >= 20 ? "Heavy" : "Not Heavy"}</p>
+                    </div>
+                </div>
+            `;
+
+        result.classList.remove("hidden");
+      }
+
+      function displayError(data) {
+        let messages = data.messages || ["An unexpected error occurred"];
+        errorText.innerHTML = messages
+          .map((msg) => `<p class="mb-1">• ${msg}</p>`)
+          .join("");
+        errorMessage.classList.remove("hidden");
+      }
+
+      // Reset button
+      resetBtn.addEventListener("click", () => {
+        form.reset();
+        result.classList.add("hidden");
+        errorMessage.classList.add("hidden");
+        inputs.forEach((field) => hideError(field));
+      });
+    </script>
+  </body>
+</html>
